@@ -11,6 +11,6 @@ def load_yaml(path: Path):
 if __name__ == "__main__":
     config_path = Path(sys.argv[1])
     config = load_yaml(config_path)
-    print("Hello yaml loader")
-# python src/engine/yaml_loader.py configs/config_v1.yaml
+    print(config)
+    # python src/engine/yaml_loader.py configs/config_v1.yaml
 
