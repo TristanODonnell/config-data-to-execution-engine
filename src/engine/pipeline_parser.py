@@ -6,7 +6,7 @@ from typing import List, Dict
 
 from pipeline_spec import DefaultsSpec, StepSpec, PipelineSpec
 
-def parse_pipeline(pipeline_raw: Dict):
+def parse_pipeline(pipeline_raw: Dict) -> PipelineSpec :
 
     steps_raw = pipeline_raw["steps"]
     steps: List[StepSpec] = []
@@ -20,7 +20,6 @@ def parse_pipeline(pipeline_raw: Dict):
             depends_on=step_dict.get("depends_on", [])
         )
         steps.append(step)
-
 
     # parse defaults
     defaults_raw = pipeline_raw.get("defaults", {})
