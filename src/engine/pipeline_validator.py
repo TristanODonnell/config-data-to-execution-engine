@@ -2,15 +2,12 @@
 
 from __future__ import  annotations
 
-from typing import List, Dict
-
-from pipeline_spec import PipelineSpec, StepSpec
-
+from engine.pipeline_spec import PipelineSpec, StepSpec
 
 def validate_pipeline(p: PipelineSpec) -> None :
 
     # name required
-    if p.name is None or p.name.strip():
+    if not p.name or not p.name.strip():
         raise ValueError("Missing/Invalid pipeline name")
 
     # steps must be a non-empty list

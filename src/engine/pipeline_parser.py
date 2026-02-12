@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import List, Dict
 
-from pipeline_spec import DefaultsSpec, StepSpec, PipelineSpec
+from engine.pipeline_spec import DefaultsSpec, StepSpec, PipelineSpec
 
 def parse_pipeline(pipeline_raw: Dict) -> PipelineSpec :
 

@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: config-data-to-execution-engine
+Version: 0.0.1
+Summary: YAML-configured pipeline execution engine
+Requires-Python: >=3.10
