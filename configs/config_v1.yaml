@@ -1,0 +1,18 @@
+# config_v1.yaml
+
+pipeline:
+  name: example_pipeline
+  defaults:
+    retries: 2
+    backoff_seconds: 2
+  steps:
+    - id: step_a
+      type: write_file
+      params:
+        text: "hello"
+
+    - id: step_b
+      type: copy_file
+      depends_on: [step_a]
+      params:
+        path: data/input.txt

@@ -1,34 +1,60 @@
-# Config-Driven Data to ML Execution Engine — v1 Design
+# Config-Driven Data → ML Execution Engine — v1 Design
 
-Status: Design (v1)  
-Scope: Local-only, synchronous execution, YAML configs, filesystem artifacts, JSON run state
-
----
-
-## 1) One-sentence description
-
-A **YAML-configured execution engine** that parses a pipeline spec, compiles it into a validated DAG, then **executes steps synchronously** with **per-step retries**, writing **artifacts to the local filesystem** and recording full **run + step state** in a `run_manifest.json`.
+**Status:** Design (v1)  
+**Scope:** Local-only, single-process, batch execution. YAML configs, filesystem artifacts, JSON run state.
 
 ---
 
-## 2) Locked decisions (v1)
+## 1) One-Sentence Description
 
-### Execution & environment
+A **deterministic, config-driven DAG execution engine** that compiles a declarative pipeline specification into a validated execution plan and executes it synchronously with per-step retries, artifact tracking, and structured run state persistence.
+
+---
+
+## 2) Architectural Framing
+
+This system is a:
+
+- **Batch workflow engine**
+- **Compile-then-execute runtime**
+- **DAG-based task orchestration system**
+- **Artifact-aware execution engine**
+
+It is intentionally scoped as a **local, single-process runtime** to isolate core orchestration mechanics without introducing distributed complexity.
+
+---
+
+## 3) Locked Decisions (v1)
+
+### Execution Model
+
 - **Execution:** synchronous, single-process
-- **Artifacts:** local filesystem only
-- **State storage:** single JSON file per run (`run_manifest.json`)
-- **Configs:** YAML
-- **Extensibility:** Step Registry (string `type` → implementation)
+- **Execution order:** topological order derived from validated DAG
+- **Parallelism:** explicitly excluded (v1)
+- **Scheduling:** not supported (no cron/interval triggers)
 
-### Retry semantics (B1)
-- **Per-step retries** with **fixed backoff**
-- Stop the pipeline if a step exceeds its retry budget
+### Storage & State
+
+- **Artifacts:** local filesystem only
+- **Run state:** single JSON manifest per run (`run_manifest.json`)
+- **Logs + metrics:** per-step files inside run directory
+
+### Configuration
+
+- **Pipeline definition:** YAML
+- **Validation:** static schema + dependency validation
+- **Extensibility:** Step Registry (`type` → implementation binding)
+
+### Retry Semantics
+
+- **Per-step retry policy**
+- Fixed backoff (`backoff_seconds`)
+- Pipeline halts if a step exceeds retry budget
+- No exponential backoff (v1)
 
 ---
 
-## 3) Mental model
-
-Building the **conveyor + manager** (engine), not the **machines** (step logic).
+## 4) High-Level System Architecture
 
 ```text
 pipeline.yaml
@@ -37,72 +63,177 @@ pipeline.yaml
   ↓
 [ Pipeline Compiler ]
   → validates schema
+  → validates dependencies
+  → detects cycles
   → builds DAG
+  → produces execution plan (topological order)
   ↓
 [ Execution Engine ]
-  → executes steps in topological order
-  → handles per-step retries + fixed backoff
+  → resolves runnable steps
+  → executes steps deterministically
+  → applies retry semantics
   → writes artifacts + logs + metrics
-  → tracks execution state in run_manifest.json
+  → persists structured state to run_manifest.json
   ↓
 runs/<run_id>/
   ├─ run_manifest.json
   └─ steps/<step_id>/
        ├─ step_log.txt
        ├─ step_metrics.json
-       └─ artifacts/...
+       └─ artifacts/
+```
+## 5) Compile vs Runtime Phases
 
---- 
+### Compile Phase (Static)
 
-## 4) Definitions (v1)
+**Input:** YAML config  
+**Output:** Validated DAG + execution plan  
+
+**Responsibilities:**
+
+- Schema validation  
+- Duplicate ID detection  
+- Unknown dependency detection  
+- Cycle detection  
+- DAG construction  
+- Topological sorting  
+
+This phase fails fast before any execution occurs.
+
+---
+
+### Runtime Phase (Dynamic)
+
+**Input:** Execution plan  
+**Output:** Artifacts + `run_manifest.json`  
+
+**Responsibilities:**
+
+- Step state transitions  
+- Retry handling  
+- Failure propagation  
+- Artifact registration  
+- Metrics + log emission  
+- State persistence  
+
+---
+
+## 6) Core Domain Definitions
 
 ### Pipeline
-A **pipeline** is a named workflow defined in YAML consisting of:
-- a list of **steps**
-- dependency edges between steps (a DAG)
-- optional defaults (e.g., retries/backoff)
+
+A **pipeline** is a declarative workflow specification composed of:
+
+- Named steps  
+- Directed dependency edges (DAG)  
+- Optional default execution policies  
+
+A pipeline describes **what should happen**, not **how it is executed**.
+
+---
 
 ### Step
-A **step** is a single unit of work (a node in the DAG).
-Each step has:
-- `id`: unique identifier
-- `type`: selects an implementation from the Step Registry
-- `depends_on`: upstream step ids that must complete first (optional)
-- `params`: step-specific configuration
-- optional retry overrides: `retries`, `backoff_seconds`
 
-### Execution state
-**Execution state** is the structured record of what happened during a run:
-- per-step status (PENDING/RUNNING/SUCCESS/FAILED/SKIPPED)
-- attempts, timestamps, and errors
-- produced artifacts and their paths
-State is stored in a single JSON file: `run_manifest.json`.
+A **step** is a single node in the DAG and represents an atomic unit of work.
+
+Each step contains:
+
+- `id`: unique identifier  
+- `type`: implementation selector (Step Registry binding)  
+- `depends_on`: upstream step IDs (optional)  
+- `params`: step-specific configuration  
+- optional retry overrides  
+
+A step implementation is responsible only for business logic, not orchestration logic.
+
+---
+
+### Execution Plan
+
+An **execution plan** is a topologically sorted ordering of steps that respects dependency constraints.
+
+This plan is derived during compilation and remains fixed during execution.
+
+---
+
+### Execution State
+
+Execution state is the structured record of a pipeline run.
+
+Stored in `run_manifest.json`, it includes:
+
+- Per-step status:
+  - `PENDING`
+  - `RUNNING`
+  - `SUCCESS`
+  - `FAILED`
+  - `SKIPPED`
+- Attempt counts  
+- Timestamps  
+- Error metadata  
+- Registered artifacts  
+
+State transitions form a simple task state machine.
+
+---
 
 ### Artifact
-An **artifact** is an output produced by a step and saved to disk under:
-`runs/<run_id>/steps/<step_id>/artifacts/`
-Artifacts are tracked in the manifest with minimal metadata:
-- `name`, `path`, `kind`
+
+An **artifact** is a persistent output produced by a step.
+
+Stored under:
+
+
+Tracked metadata includes:
+
+- `name`
+- `path`
+- `kind`
+- producing step ID  
+
+Artifacts enable lineage and reproducibility.
 
 ---
 
-## 5) Non-goals (v1)
+## 7) Determinism & Reproducibility (v1 Guarantees)
 
-This project is **not**:
-- a UI product
-- a cloud/AWS demo
-- a production SaaS
-- a scheduler (cron/interval scheduling)
-- a distributed or parallel execution system
-- a streaming engine
-- an online inference/serving system
-- a full Airflow/dbt/MLflow replacement
+The engine guarantees:
+
+- Deterministic execution order  
+- Explicit dependency resolution  
+- Fail-fast compile validation  
+- Structured state persistence  
+- Artifact traceability  
+
+It does **not** guarantee:
+
+- Distributed consistency  
+- Parallel execution ordering  
+- Remote storage durability  
+- Fault-tolerant recovery across machines  
 
 ---
 
-## 6) YAML config shape (v1)
+## 8) Non-Goals (v1)
 
-### Minimal example
+This project is explicitly **not**:
+
+- A UI platform  
+- A cloud-native system  
+- A scheduler  
+- A distributed worker system  
+- A streaming engine  
+- An online inference system  
+- A full Airflow/dbt/MLflow replacement  
+
+It is a **core orchestration runtime**.
+
+---
+
+## 9) YAML Configuration Shape (v1)
+
+### Minimal Example
+
 ```yaml
 pipeline:
   name: example_pipeline
