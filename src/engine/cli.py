@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import traceback
 
 from engine.yaml_loader import load_yaml
 from engine.pipeline_parser import parse_pipeline
@@ -48,7 +47,6 @@ def main():
         print("[cli] validating pipeline...")
         validate_pipeline(pipeline)
         print("[cli] pipeline validated")
-
 
         if args.dry_run:
             print("Dry-run OK: pipeline parsed + validated.")
