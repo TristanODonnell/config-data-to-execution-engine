@@ -4,7 +4,7 @@ from __future__ import annotations
 from engine.pipeline_spec import PipelineSpec
 from dependency_graph import DependencyGraph
 
-def build_graph(p: PipelineSpec):
+def build_graph(p: PipelineSpec) -> DependencyGraph:
 
     nodes = {s.id for s in p.steps}
 
