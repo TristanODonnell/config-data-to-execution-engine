@@ -13,6 +13,7 @@ def build_graph(p: PipelineSpec) -> DependencyGraph:
 
     for s in p.steps:
         for prereq_id in s.depends_on:
+            # When prereq_id completes, s.id becomes eligible to run
             adjacency[prereq_id].append(s.id)
             indegree[s.id] += 1
 
