@@ -11,7 +11,7 @@ def detect_cycle(d: DependencyGraph):
     ready = deque()
 
     for n in d.nodes:
-        if d.indegree[n] == 0:
+        if indegree[n] == 0:
             ready.append(n)
 
     order = []
@@ -22,11 +22,12 @@ def detect_cycle(d: DependencyGraph):
         neighbors = d.adjacency.get(popped, [])   # default empty list
         for n in neighbors:
             indegree[n] -= 1
-            if d.indegree[n] == 0:
+            if indegree[n] == 0:
                 ready.append(n)
 
     if len(order) != len(d.nodes):
-        raise Exception("Cycle Exists")
+        remaining = [n for n in d.nodes if indegree[n] > 0]
+        raise Exception(f"Cycle detected involving: {remaining}")
 
     return
 
