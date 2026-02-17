@@ -4,6 +4,7 @@ class StepRegistry:
     def __init__(self):
         self._registry = {}
 
+
     def register(self, type_name: str, impl) -> None:
         if type_name in self._registry:
             raise ValueError(f"Step type '{type_name}' already registered")
@@ -24,3 +25,12 @@ class StepRegistry:
 
     def known_types(self):
         return list(self._registry.keys())
+
+
+def build_default_registry() -> StepRegistry:
+    registry = StepRegistry()
+
+    registry.register("write_file", WriteFileStep)
+    registry.register("copy_file", CopyFileStep)
+
+    return registry
