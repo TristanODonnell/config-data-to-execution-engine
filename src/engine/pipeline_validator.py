@@ -1,9 +1,9 @@
 # pipeline_validator.py
 
-from __future__ import  annotations
+from __future__ import annotations
 
 from engine.pipeline_spec import PipelineSpec, StepSpec
-
+from engine.step_registry import StepRegistry
 def validate_pipeline(p: PipelineSpec) -> None :
 
     # name required
@@ -39,6 +39,23 @@ def validate_pipeline(p: PipelineSpec) -> None :
     if len(all_ids) != len(set(all_ids)):
         raise ValueError("Duplicate step ids found")
 
+
+def validate_step_types(p: PipelineSpec, registry: StepRegistry):
+    missing = []
+
+    for s in p.steps:
+        if not registry.has(s.type):
+            missing.append(s.type)
+
+    if missing:
+        missing = sorted(set(missing))
+        known = registry.known_types()
+        raise ValueError(
+            f"Unknown step types: {missing}. "
+            f"Known types: {known}"
+        )
+
+    return
 
 
 
