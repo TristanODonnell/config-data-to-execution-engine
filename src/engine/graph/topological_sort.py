@@ -1,12 +1,13 @@
-# cycle_detector.py
+# topological_sort.py
 
 from __future__ import annotations
 
 from collections import deque
+from typing import List
 
-from dependency_graph import DependencyGraph
+from .dependency_graph import DependencyGraph
 
-def detect_cycle(d: DependencyGraph):
+def topological_sort(d: DependencyGraph) -> List[str]:
     indegree = dict(d.indegree)
     ready = deque()
 
@@ -19,7 +20,7 @@ def detect_cycle(d: DependencyGraph):
         popped = ready.popleft()
         order.append(popped)
 
-        neighbors = d.adjacency.get(popped, [])   # default empty list
+        neighbors = d.adjacency.get(popped, [])  # default empty list
         for n in neighbors:
             indegree[n] -= 1
             if indegree[n] == 0:
@@ -27,11 +28,9 @@ def detect_cycle(d: DependencyGraph):
 
     if len(order) != len(d.nodes):
         remaining = [n for n in d.nodes if indegree[n] > 0]
-        raise Exception(f"Cycle detected involving: {remaining}")
+        raise ValueError(f"Cycle detected involving: {remaining}")
 
-    return
-
-
+    return order
 
 
 
@@ -53,5 +52,9 @@ def detect_cycle(d: DependencyGraph):
 
 
 
-    
+
+
+
+
+
 
