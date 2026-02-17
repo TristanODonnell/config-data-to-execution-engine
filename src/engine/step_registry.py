@@ -1,5 +1,8 @@
 # step_registry.py
 
+from .steps.copy_file import CopyFileStep
+from .steps.write_file import WriteFileStep
+
 class StepRegistry:
     def __init__(self):
         self._registry = {}
