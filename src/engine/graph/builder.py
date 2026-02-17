@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from engine.pipeline_spec import PipelineSpec
-from dependency_graph import DependencyGraph
+from .dependency_graph import DependencyGraph
 
 def build_graph(p: PipelineSpec) -> DependencyGraph:
 

@@ -62,8 +62,6 @@ def main():
                 deps = ", ".join(s.depends_on) if s.depends_on else "-"
                 print(f"{i:02d}. {s.id}  [{s.type}]  deps: {deps}")
 
-            print("Execute not implemented yet.")
-
             return
 
     except Exception as e:
