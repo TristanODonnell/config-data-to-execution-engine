@@ -8,4 +8,5 @@ class RunContext:
     run_id: str
     run_dir: Path
     steps_dir: Path
+    manifest_path: Path
     created_at: str

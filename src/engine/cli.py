@@ -9,6 +9,9 @@ from engine.pipeline_parser import parse_pipeline
 from engine.pipeline_validator import validate_pipeline, validate_step_types
 from engine.graph.compile import run_compile
 from engine.step_registry import build_default_registry
+from engine.setup_run import setup_run
+from engine.executor import execute_pipeline
+
 def cli_parse(argv=None) -> argparse.Namespace :
     parser = argparse.ArgumentParser(
         description="Run a YAML pipeline (plan validates + prints plan only).")
@@ -50,19 +53,24 @@ def main():
         validate_pipeline(pipeline)
         print("[cli] pipeline validated")
 
+        step_registry = build_default_registry()
+        validate_step_types(pipeline, step_registry)
+        order = run_compile(pipeline)
+
+        steps_by_id = {s.id: s for s in pipeline.steps}
         # PLAN MODE (dry-run + ordering)
         if args.plan:
-            step_registry = build_default_registry()
-            validate_step_types(pipeline, step_registry)
-            order = run_compile(pipeline)
-
-            steps_by_id = {s.id: s for s in pipeline.steps}
             for i, step_id in enumerate(order, start=1):
                 s = steps_by_id[step_id]
                 deps = ", ".join(s.depends_on) if s.depends_on else "-"
                 print(f"{i:02d}. {s.id}  [{s.type}]  deps: {deps}")
-
             return
+
+        #set up and execute run
+        run_context = setup_run(pipeline, order)
+        manifest_path = run_context.manifest_path
+        execute_pipeline(pipeline, order, step_registry, manifest_path)
+
 
     except Exception as e:
         if args is not None and getattr(args, "debug", False):
@@ -73,5 +81,8 @@ def main():
 
 if __name__ == "__main__":
     main()
-    # python -m engine.cli configs/config_v1.yaml --debug --plan
+    # python -m engine.cli configs/config_v1.yaml
+    # --debug - debugging prints
+    # --plan
+        # run without --plan for full execution logic
 

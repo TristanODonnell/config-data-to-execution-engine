@@ -18,3 +18,16 @@ def update_step_status(path: Path, step_id: str, status: StepStatus) -> None:
     manifest = read_manifest(path)
     manifest["steps"][step_id]["status"] = status.value
     write_manifest(path, manifest)
+
+def init_manifest(path: Path, pipeline_name: str, order: list[str]) -> None:
+    manifest = {
+        "pipeline": {
+            "name": pipeline_name,
+            "status": "RUNNING"
+        },
+        "steps": {
+            step_id: {"status": "PENDING"}
+            for step_id in order
+        }
+    }
+    write_manifest(path, manifest)

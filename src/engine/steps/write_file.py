@@ -1,7 +1,9 @@
 # write_file.py
 from __future__ import annotations
-
 from pathlib import Path
+
+from engine.paths import resolve_artifact_path
+
 
 class WriteFileStep:
     def run(self, params: dict, context: dict) -> None:
@@ -9,12 +11,11 @@ class WriteFileStep:
         if text is None:
             raise ValueError("write_file step requires 'text' param")
 
-        run_dir: Path = context["run_dir"]
-        step_id: str = context["step_id"]
+        # Optional filename; defaults make toy configs easy.
+        rel_path = params.get("path", "output.txt")
 
-        artifacts_dir = run_dir / "artifacts"
-        artifacts_dir.mkdir(parents=True, exist_ok=True)
+        step_dir: Path = context["step_dir"]
+        out_path = resolve_artifact_path(step_dir, rel_path)
 
-        output_path = artifacts_dir / f"{step_id}.txt"
-
-        output_path.write_text(text, encoding="utf-8")
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(str(text), encoding="utf-8")

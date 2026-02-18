@@ -33,7 +33,7 @@ class StepRegistry:
 def build_default_registry() -> StepRegistry:
     registry = StepRegistry()
 
-    registry.register("write_file", WriteFileStep)
-    registry.register("copy_file", CopyFileStep)
+    registry.register("write_file", WriteFileStep())
+    registry.register("copy_file", CopyFileStep())
 
     return registry

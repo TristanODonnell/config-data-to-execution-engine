@@ -1,26 +1,36 @@
 # copy_file.py
+from __future__ import annotations
 
 import shutil
 from pathlib import Path
 
+from engine.paths import resolve_artifact_path
+
 
 class CopyFileStep:
     def run(self, params: dict, context: dict) -> None:
-        source_path = params.get("path")
-        if source_path is None:
+        rel_path = params.get("path")
+        if rel_path is None:
             raise ValueError("copy_file step requires 'path' param")
 
-        source = Path(source_path)
+        run_dir: Path = context["run_dir"]
+        step_dir: Path = context["step_dir"]
+
+        from_step = params.get("from_step")
+
+        # Mode A (recommended): copy from an upstream step's outputs
+        if from_step:
+            source = run_dir / "steps" / from_step / rel_path
+        else:
+            # Mode B (optional): treat as external filesystem path (project-relative)
+            source = Path(rel_path)
 
         if not source.exists():
             raise FileNotFoundError(f"Source file does not exist: {source}")
 
-        run_dir: Path = context["run_dir"]
-        step_id: str = context["step_id"]
+        # Write destination ONLY inside this step's folder
+        dest_rel = params.get("dest", Path(rel_path).name)
+        destination = resolve_artifact_path(step_dir, dest_rel)
 
-        artifacts_dir = run_dir / "artifacts"
-        artifacts_dir.mkdir(parents=True, exist_ok=True)
-
-        destination = artifacts_dir / f"{step_id}_{source.name}"
-
+        destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, destination)

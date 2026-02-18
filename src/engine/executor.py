@@ -19,19 +19,23 @@ def execute_pipeline(pipeline_spec: PipelineSpec,
 
     for step_id in order_list:
         spec = steps_by_id[step_id]
-
         handler = registry.get(spec.type)
+
+        step_dir = run_dir / "steps" / step_id
+        step_dir.mkdir(parents=True, exist_ok=True)
 
         update_step_status(manifest_path, step_id, StepStatus.RUNNING)
         try:
-            context = {"run_dir": run_dir, "step_id": step_id}
+            context = {
+                "run_dir": run_dir,
+                "step_id": step_id,
+                "step_dir": step_dir,
+            }
             handler.run(spec.params, context)
             update_step_status(manifest_path, step_id, StepStatus.SUCCESS)
         except Exception:
             update_step_status(manifest_path, step_id, StepStatus.FAILED)
             raise
-
-
 
 
 
