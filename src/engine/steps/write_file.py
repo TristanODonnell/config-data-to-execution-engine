@@ -3,9 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 
 from engine.paths import resolve_artifact_path
+from engine.steps.base_step import BaseStep
 
 
-class WriteFileStep:
+class WriteFileStep(BaseStep):
     def run(self, params: dict, context: dict) -> None:
         text = params.get("text")
         if text is None:

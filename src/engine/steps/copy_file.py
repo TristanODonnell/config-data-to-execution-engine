@@ -4,10 +4,11 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
+from engine.steps.base_step import BaseStep
 from engine.paths import resolve_artifact_path
 
 
-class CopyFileStep:
+class CopyFileStep(BaseStep):
     def run(self, params: dict, context: dict) -> None:
         rel_path = params.get("path")
         if rel_path is None:
