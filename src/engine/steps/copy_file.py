@@ -15,15 +15,12 @@ class CopyFileStep(BaseStep):
             raise ValueError("copy_file step requires 'path' param")
 
         run_dir: Path = context["run_dir"]
-        step_dir: Path = context["step_dir"]
 
         from_step = params.get("from_step")
 
-        # Mode A (recommended): copy from an upstream step's outputs
         if from_step:
-            source = run_dir / "steps" / from_step / rel_path
+            source = run_dir / "artifacts" / from_step / rel_path
         else:
-            # Mode B (optional): treat as external filesystem path (project-relative)
             source = Path(rel_path)
 
         if not source.exists():
@@ -31,7 +28,8 @@ class CopyFileStep(BaseStep):
 
         # Write destination ONLY inside this step's folder
         dest_rel = params.get("dest", Path(rel_path).name)
-        destination = resolve_artifact_path(step_dir, dest_rel)
+        artifacts_dir: Path = context["artifacts_dir"]
+        destination = resolve_artifact_path(artifacts_dir, dest_rel)
 
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, destination)
