@@ -5,11 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import List
 import time
-
+from datetime import datetime, timezone
 
 from engine.pipeline_spec import PipelineSpec
 from engine.step_registry import StepRegistry
-from engine.manifest_writer import update_step_status
+from engine.manifest_writer import update_step
 from engine.state import StepStatus
 
 
@@ -41,11 +41,28 @@ def execute_pipeline(pipeline_spec: PipelineSpec,
         step_dir = run_dir / "steps" / step_id
         step_dir.mkdir(parents=True, exist_ok=True)
 
-        update_step_status(manifest_path, step_id, StepStatus.RUNNING)
+
+
         attempt = 0
         max_attempts = 1 + step_retries
+        started_at = datetime.now(timezone.utc).isoformat()
+
+        update_step(
+            path=manifest_path,
+            step_id=step_id,
+            status=StepStatus.RUNNING,
+            started_at=started_at,
+            max_retries=step_retries,
+            backoff_seconds=step_backoff,
+            attempts=0,
+        )
         while True:
             attempt += 1
+            update_step(
+                path=manifest_path,
+                step_id=step_id,
+                attempts=attempt,
+            )
             try:
                 context = {
                     "run_dir": run_dir,
@@ -53,12 +70,26 @@ def execute_pipeline(pipeline_spec: PipelineSpec,
                     "step_dir": step_dir,
                 }
                 handler.run(spec.params, context)
-                update_step_status(manifest_path, step_id, StepStatus.SUCCESS)
+                finished_at = datetime.now(timezone.utc).isoformat()
+
+                update_step(
+                    path=manifest_path,
+                    step_id=step_id,
+                    status=StepStatus.SUCCESS,
+                    finished_at=finished_at
+                )
                 break
 
-            except Exception:
-                if attempt >= max_attempts:
-                    update_step_status(manifest_path, step_id, StepStatus.FAILED)
+            except Exception as e:
+                if attempt == max_attempts:
+                    finished_at = datetime.now(timezone.utc).isoformat()
+                    update_step(
+                        path=manifest_path,
+                        step_id=step_id,
+                        status=StepStatus.FAILED,
+                        finished_at=finished_at,
+                        error_message=str(e)
+                    )
                     raise
                 else:
                    time.sleep(step_backoff)
