@@ -82,6 +82,7 @@ def main():
 if __name__ == "__main__":
     main()
     # python -m engine.cli configs/config_v1.yaml
+    # python -m engine.cli configs/retry_test.yaml
     # --debug - debugging prints
     # --plan
         # run without --plan for full execution logic

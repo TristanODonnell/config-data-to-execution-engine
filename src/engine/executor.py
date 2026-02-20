@@ -81,7 +81,7 @@ def execute_pipeline(pipeline_spec: PipelineSpec,
                 break
 
             except Exception as e:
-                if attempt == max_attempts:
+                if attempt >= max_attempts:
                     finished_at = datetime.now(timezone.utc).isoformat()
                     update_step(
                         path=manifest_path,

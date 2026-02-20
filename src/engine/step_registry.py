@@ -1,6 +1,7 @@
 # step_registry.py
-
+from .steps.always_fail import AlwaysFailStep
 from .steps.copy_file import CopyFileStep
+from .steps.fail_once import FailOnceStep
 from .steps.write_file import WriteFileStep
 
 class StepRegistry:
@@ -33,7 +34,8 @@ class StepRegistry:
 def build_default_registry() -> StepRegistry:
     registry = StepRegistry()
 
-    registry.register("write_file", WriteFileStep())
-    registry.register("copy_file", CopyFileStep())
-
+    registry.register("write_file", impl=WriteFileStep())
+    registry.register("copy_file", impl=CopyFileStep())
+    registry.register("fail_once", impl=FailOnceStep())
+    registry.register("always_fail", impl=AlwaysFailStep())
     return registry

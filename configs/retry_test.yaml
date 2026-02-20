@@ -1,0 +1,12 @@
+pipeline:
+  name: retry_test
+  defaults:
+    retries: 2
+    backoff_seconds: 1
+
+  steps:
+    - id: test_retry
+      type: fail_once
+
+    - id: test_fail
+      type: always_fail
