@@ -18,9 +18,10 @@ def setup_run(p: PipelineSpec, order: List[str]) -> RunContext:
     spec_dict = asdict(p)
 
     init_manifest(
-        ctx.manifest_path,
-        p.name,
-        order
+        path=ctx.manifest_path,
+        pipeline_name=p.name,
+        order=order,
+        created_at=ctx.created_at,
     )
     snapshot_path = ctx.run_dir / "pipeline_snapshot.yaml"
 

@@ -118,12 +118,11 @@ def init_manifest(
                 "error_message": None,
                 "started_at": None,
                 "finished_at": None,
-
                 "artifacts": {
                     "outputs": [],
                     "log_path": None,
                     "metrics_path": None,
-                }
+                },
             }
             for step_id in order
         }
