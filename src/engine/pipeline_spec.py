@@ -17,6 +17,10 @@ class StepSpec:
     params: Dict[str, Any] = field(default_factory=dict)
     depends_on: List[str] = field(default_factory=list)
 
+    # optional overrides
+    retries: Optional[int] = None
+    backoff_seconds: Optional[int] = None
+
 @dataclass(frozen=True)
 class PipelineSpec:
     name: str

@@ -13,6 +13,8 @@ pipeline:
 
     - id: step_b
       type: copy_file
-      depends_on: [step_a]
+      depends_on: [ step_a ]
+      retries: 5
+      backoff_seconds: 1
       params:
         path: data/input.txt
