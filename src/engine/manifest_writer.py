@@ -45,6 +45,27 @@ def update_step(
 
     write_manifest(path, manifest)
 
+def update_step_artifacts(
+    path: Path,
+    step_id: str,
+    outputs: list[str] | None = None,
+    log_path: str | None = None,
+    metrics_path: str | None = None,
+) -> None:
+    manifest = read_manifest(path)
+
+    step = manifest["steps"][step_id]
+    artifacts = step["artifacts"]
+
+    if outputs is not None:
+        artifacts["outputs"] = outputs
+    if log_path is not None:
+        artifacts["log_path"] = log_path
+    if metrics_path is not None:
+        artifacts["metrics_path"] = metrics_path
+
+    write_manifest(path, manifest)
+
 def update_pipeline_status(
         path: Path,
         status: str | None = None,
@@ -56,22 +77,53 @@ def update_pipeline_status(
 
     write_manifest(path, manifest)
 
+def update_pipeline_end(
+    path: Path,
+    status: str,
+    finished_at: str,
+    duration_seconds: float,
+) -> None:
+    manifest = read_manifest(path)
+    pipeline = manifest["pipeline"]
 
-def init_manifest(path: Path, pipeline_name: str, order: list[str]) -> None:
+    pipeline["status"] = status
+    pipeline["finished_at"] = finished_at
+    pipeline["duration_seconds"] = duration_seconds
+
+    write_manifest(path, manifest)
+
+
+
+
+def init_manifest(
+        path: Path,
+        pipeline_name: str,
+        order: list[str],
+        created_at: str,
+    ) -> None:
     manifest = {
         "pipeline": {
             "name": pipeline_name,
-            "status": "RUNNING"
+            "status": "RUNNING",
+            "created_at": created_at,
+            "finished_at": None,
+            "duration_seconds": None,
         },
         "steps": {
             step_id: {
                 "status": "PENDING",
                 "attempts": 0,
-                "max_retries": None,      # set later when step resolves config
-                "backoff_seconds": None,  # set later
+                "max_retries": None,
+                "backoff_seconds": None,
                 "error_message": None,
                 "started_at": None,
                 "finished_at": None,
+
+                "artifacts": {
+                    "outputs": [],
+                    "log_path": None,
+                    "metrics_path": None,
+                }
             }
             for step_id in order
         }

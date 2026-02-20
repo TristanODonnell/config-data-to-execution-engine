@@ -29,6 +29,7 @@ def setup_run(p: PipelineSpec, order: List[str]) -> RunContext:
 
     for step_id in order:
         (ctx.steps_dir / step_id).mkdir(exist_ok=False)
+        (ctx.artifacts_dir / step_id).mkdir(exist_ok=False)
 
     return ctx
 
@@ -39,10 +40,13 @@ def init_run_context() -> RunContext:
     run_id = generate_run_id(now)
 
     run_dir = Path("runs") / run_id
+
+    artifacts_dir = run_dir / "artifacts"
     steps_dir = run_dir / "steps"
 
     run_dir.mkdir(parents=True, exist_ok=False)
     steps_dir.mkdir(parents=True, exist_ok=False)
+    artifacts_dir.mkdir(parents=True, exist_ok=False)
 
     manifest_path = run_dir / "manifest.json"
 
@@ -50,6 +54,7 @@ def init_run_context() -> RunContext:
         run_id=run_id,
         run_dir=run_dir,
         steps_dir=steps_dir,
+        artifacts_dir=artifacts_dir,
         created_at=now.isoformat(),
         manifest_path=manifest_path
     )
