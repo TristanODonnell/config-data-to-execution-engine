@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 from engine.pipeline_spec import PipelineSpec
 from engine.step_registry import StepRegistry
-from engine.manifest_writer import update_step
+from engine.manifest_writer import update_step, update_pipeline_status
 from engine.state import StepStatus
 
 
@@ -90,10 +90,19 @@ def execute_pipeline(pipeline_spec: PipelineSpec,
                         finished_at=finished_at,
                         error_message=str(e)
                     )
+                    update_pipeline_status(
+                        path=manifest_path,
+                        status="FAILED",
+                    )
                     raise
                 else:
                    time.sleep(step_backoff)
 
+
+    update_pipeline_status(
+        path=manifest_path,
+        status="SUCCESS",
+    )
 
 
 

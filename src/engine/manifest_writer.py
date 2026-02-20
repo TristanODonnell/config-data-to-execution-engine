@@ -45,6 +45,17 @@ def update_step(
 
     write_manifest(path, manifest)
 
+def update_pipeline_status(
+        path: Path,
+        status: str | None = None,
+) -> None:
+    manifest = read_manifest(path)
+    pipeline = manifest["pipeline"]
+    if status is not None:
+        pipeline["status"] = status
+
+    write_manifest(path, manifest)
+
 
 def init_manifest(path: Path, pipeline_name: str, order: list[str]) -> None:
     manifest = {
