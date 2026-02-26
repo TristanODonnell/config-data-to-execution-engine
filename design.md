@@ -1,7 +1,17 @@
-# Config-Driven Data → ML Execution Engine — v1 Design
+# Config-Driven Data → Execution Engine — v1 Design
 
-**Status:** Design (v1)  
-**Scope:** Local-only, single-process, batch execution. YAML configs, filesystem artifacts, JSON run state.
+**Status:** v1 — Core engine implemented (active development)
+
+**Current Scope:**
+- Local-only, single-process execution
+- YAML-based pipeline specifications
+- DAG compilation + topological execution
+- Filesystem-backed run state and artifacts
+
+**Next Layer (Planned):**
+- Structured logging layer
+- Warehouse / table materialization layer
+- Artifact lineage metadata
 
 ---
 
