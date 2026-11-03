@@ -1,7 +1,9 @@
 # Python
 .venv/
+.venv-ci/
 __pycache__/
 *.pyc
+*.egg-info/
 
 # Run outputs
 runs/
@@ -9,3 +11,4 @@ runs/
 # OS
 .DS_Store
 Thumbs.db
+
